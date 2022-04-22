@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var mediaPlayer: MediaPlayer
     lateinit var btnPlayPause:Button
     lateinit var auodioRecorder : AudioRecord
+    var player: MediaPlayer? = null
 
     private var recorder: MediaRecorder? = null
     private var fileName: String = ""
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         btnPlayPause = binding.playPauseBtn
         val btnStop = binding.stopBtn
         val btnRecord = binding.recordBtn
+        val btnRecordPlay = binding.recordPlayBtn
 
 
         initViews()
@@ -50,7 +52,43 @@ class MainActivity : AppCompatActivity() {
         btnPlayPause.setOnClickListener { startStop() }
         btnStop.setOnClickListener { stop() }
         btnRecord.setOnClickListener { record() }
+        btnRecordPlay.setOnClickListener {
+            startPlayingRecorder()
+        }
 
+    }
+
+    private fun onPlay()  {
+
+        if (mStartRecording) {
+            startPlaying()
+        } else {
+//                Toast.makeText(this,"stop", Toast.LENGTH_SHORT).show()
+            stopPlaying()
+        }
+        mStartRecording = !mStartRecording
+
+    }
+
+    private fun startPlayingRecorder() {
+        onPlay()
+    }
+
+    private fun startPlaying() {
+        player = MediaPlayer().apply {
+            try {
+                setDataSource(fileName)
+                prepare()
+                start()
+            } catch (e: IOException) {
+                Log.e("LOG_TAG", "prepare() failed")
+            }
+        }
+    }
+
+    private fun stopPlaying() {
+        player?.release()
+        player = null
     }
 
     private fun record() {
@@ -66,16 +104,25 @@ class MainActivity : AppCompatActivity() {
                 startRecording()
             } else {
 //                Toast.makeText(this,"stop", Toast.LENGTH_SHORT).show()
-//                stopRecording()
+                stopRecording()
             }
-            !mStartRecording
+            mStartRecording = !mStartRecording
 
         }
 
 
 
     }
-        fun startRecording() {
+
+    private fun stopRecording() {
+        recorder?.apply {
+            stop()
+            release()
+        }
+        recorder = null
+    }
+
+    fun startRecording() {
         recorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
@@ -126,6 +173,7 @@ class MainActivity : AppCompatActivity() {
 
         }
         Log.d("TAG", "onCreate: ${mediaPlayer.isPlaying} ")
+
     }
 
     override fun onRequestPermissionsResult(
