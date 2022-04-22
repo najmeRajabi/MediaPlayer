@@ -1,30 +1,96 @@
 package com.example.mediaplayer
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.media.AudioAttributes
+import android.media.AudioRecord
 import android.media.MediaPlayer
+import android.media.MediaRecorder
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.PackageManagerCompat.LOG_TAG
 import androidx.viewbinding.ViewBinding
 import com.example.mediaplayer.databinding.ActivityMainBinding
+import java.io.IOException
+
+private const val REQUEST_RECORD_AUDIO_PERMISSION = 200
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
     lateinit var mediaPlayer: MediaPlayer
+    lateinit var btnPlayPause:Button
+    lateinit var auodioRecorder : AudioRecord
+
+    private var recorder: MediaRecorder? = null
+    private var fileName: String = ""
+    private var permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO)
+    private var permissionToRecordAccepted = false
+    var mStartRecording = true
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val btnPlayPause = binding.playPauseBtn
+        btnPlayPause = binding.playPauseBtn
         val btnStop = binding.stopBtn
+        val btnRecord = binding.recordBtn
+
 
         initViews()
 
+        fileName = "${externalCacheDir?.absolutePath}/audiorecordtest.3gp"
+
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION)
+
         btnPlayPause.setOnClickListener { startStop() }
         btnStop.setOnClickListener { stop() }
+        btnRecord.setOnClickListener { record() }
 
+    }
+
+    private fun record() {
+
+
+
+
+        if (permissionToRecordAccepted){
+
+
+
+            if (mStartRecording) {
+                startRecording()
+            } else {
+//                Toast.makeText(this,"stop", Toast.LENGTH_SHORT).show()
+//                stopRecording()
+            }
+            !mStartRecording
+
+        }
+
+
+
+    }
+        fun startRecording() {
+        recorder = MediaRecorder().apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+            setOutputFile(fileName)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+
+            try {
+                prepare()
+            } catch (e: IOException) {
+                Log.e("LOG_TAG", "prepare() failed ${e.message
+                }")
+            }
+
+            start()
+        }
     }
 
     private fun stop() {
@@ -35,6 +101,7 @@ class MainActivity : AppCompatActivity() {
 
         if (mediaPlayer.isPlaying){
             mediaPlayer.pause()
+
         }else {
             mediaPlayer.start()
             Log.d("TAG", "onCreate: ${mediaPlayer.isPlaying} ")
@@ -59,5 +126,23 @@ class MainActivity : AppCompatActivity() {
 
         }
         Log.d("TAG", "onCreate: ${mediaPlayer.isPlaying} ")
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        permissionToRecordAccepted = if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+
+        } else {
+            false
+        }
+        if (!permissionToRecordAccepted)
+            Toast.makeText(this,"nok",Toast.LENGTH_SHORT).show()
+        else
+            Toast.makeText(this,"ok",Toast.LENGTH_SHORT).show()
     }
 }
