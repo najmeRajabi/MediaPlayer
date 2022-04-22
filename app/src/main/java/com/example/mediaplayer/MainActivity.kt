@@ -32,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private var permissions: Array<String> = arrayOf(Manifest.permission.RECORD_AUDIO)
     private var permissionToRecordAccepted = false
     var mStartRecording = true
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -93,12 +95,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun record() {
 
-
-
-
         if (permissionToRecordAccepted){
-
-
 
             if (mStartRecording) {
                 startRecording()
@@ -123,6 +120,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun startRecording() {
+
         recorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
@@ -141,7 +139,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun stop() {
-        mediaPlayer.stop()
+        mediaPlayer?.apply {
+            stop()
+            release()
+        }
+        //mediaPlayer = null
     }
 
     private fun startStop() {
